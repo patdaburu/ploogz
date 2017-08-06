@@ -5,5 +5,19 @@
 .. currentmodule:: setup.py
 .. moduleauthor:: Pat Daburu <pat@daburu.net>
 
-Provide a brief description of the module.
+This file is used to create the package uploaded to PyPI.
 """
+
+from distutils.core import setup
+setup(
+  name='ploogz',
+  packages=['ploogz'],  # This must be the same as the name above.
+  version='0.0.1',
+  description='A simple plugin framework',
+  author='Pat Daburu',
+  author_email='pat@daburu.net',
+  url='https://github.com/patdaburu/ploogz',  # Use the URL to the github repo.
+  download_url='https://github.com/peterldowns/mypackage/archive/0.1.tar.gz',  # I'll explain this in a second
+  keywords=['plugin'],  # arbitrary keywords
+  classifiers=[],
+)
