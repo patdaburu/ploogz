@@ -8,5 +8,5 @@
 Provide a brief description of the module.
 """
 
-__version__ = '0.0.2'  # The working version.
-__release__ = '0.0.2'  # The release version.
+__version__ = '0.0.3'  # The working version.
+__release__ = '0.0.3'  # The release version.

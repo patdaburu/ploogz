@@ -12,8 +12,12 @@ from distutils.core import setup
 setup(
   name='ploogz',
   packages=['ploogz'],  # This must be the same as the name above.
-  version='0.0.2',
-  description='A simple plugin framework',
+  version='0.0.3',
+  install_requires=[
+    'automat'
+  ],
+  description='A pretty simple plugin framework.',
+  license='MIT',
   author='Pat Daburu',
   author_email='pat@daburu.net',
   url='https://github.com/patdaburu/ploogz',  # Use the URL to the github repo.
