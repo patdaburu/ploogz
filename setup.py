@@ -17,7 +17,7 @@ setup(
   author='Pat Daburu',
   author_email='pat@daburu.net',
   url='https://github.com/patdaburu/ploogz',  # Use the URL to the github repo.
-  download_url='https://github.com/peterldowns/mypackage/archive/0.1.tar.gz',  # I'll explain this in a second
+  download_url='https://github.com/pblair/ploogz/archive/0.0.1.tar.gz',  # I'll explain this in a second
   keywords=['plugin'],  # arbitrary keywords
   classifiers=[],
 )
