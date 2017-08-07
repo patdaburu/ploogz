@@ -5,7 +5,7 @@
 
 API Documentation
 =================
-Read the docs.
+Let's take a look at how ploogz works.
 
 ------
 ploogz
@@ -15,4 +15,14 @@ ploogz
     :undoc-members:
     :inherited-members:
     :show-inheritance:
-    :synopsis: A simple python plugin framework.
+    :synopsis: A Simple Python Plugin Framework
+
+---------------
+ploogz.ploogins
+---------------
+.. automodule:: ploogz.ploogins
+    :members:
+    :undoc-members:
+    :inherited-members:
+    :show-inheritance:
+    :synopsis: Ploogins and Ploogin Loaders

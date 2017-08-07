@@ -10,7 +10,7 @@ Unit tests of the :py:class:`ploogz.Ploogin` class.
 
 import unittest
 from automat import NoTransition
-from ploogz import Ploogin
+from ploogz.ploogins import Ploogin
 
 
 class TestPloogin(Ploogin):

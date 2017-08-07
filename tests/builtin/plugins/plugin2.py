@@ -8,7 +8,7 @@
 Provide a brief description of the module.
 """
 
-from ploogz import Ploogin
+from ploogz.ploogins import Ploogin
 
 
 class TestPlooginTwo(Ploogin):

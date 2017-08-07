@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-.. currentmodule:: ploogz
+.. currentmodule:: ploogz.ploogins
 .. moduleauthor:: Pat Daburu <pat@daburu.net>
 
-Provide a brief description of the module.
+Ploogins and Ploogin Loaders
 """
 
 import os
@@ -16,17 +16,14 @@ from abc import ABCMeta, abstractmethod
 from typing import Iterator, List
 from automat import MethodicalMachine
 
-__version__ = '0.0.1'  # The working version.
-__release__ = '0.0.1'  # The release version.
-
 _DEFAULT_SEARCH_PATH = [
-    os.path.normpath(os.path.join(os.getcwd(), 'builtin/plugins'))
-]  # The default paths we'll search for plugins.
+    os.path.normpath(os.path.join(os.getcwd(), 'builtin/ploogins'))
+]  # The default paths we'll search for ploogins.
 
 
 class Ploogin(object):
     """
-    Extend this class to create your own plugins!
+    Extend this class to create your own ploogins!
     """
     __metaclass__ = ABCMeta
     _machine = MethodicalMachine()  # This is the class state machine.
@@ -43,7 +40,7 @@ class Ploogin(object):
     @property
     def name(self) -> str:
         """
-        Get the helpful, descriptive, human-readable name for the plugin
+        Get the helpful, descriptive, human-readable name for the ploogin.
 
         :rtype: ``str``
         """
@@ -62,7 +59,7 @@ class Ploogin(object):
         """The plugin is active."""
 
     @_machine.state()
-    def torn_down(self):
+    def torndown(self):
         """The plugin has been torn down."""
 
     @_machine.input()
@@ -126,26 +123,47 @@ class Ploogin(object):
     # We start in the 'initialized' state until somebody calls load(), at which point we call the _setup() function and
     # move to the 'ready' state.
     initialized.upon(setup, enter=ready, outputs=[_setup])
+    # If we're asked to tear down from the initialized state, that's ok (but nothing happens).
+    initialized.upon(teardown, enter=torndown, outputs=[])
     # If we're in the 'ready' state and somebody calls 'activate', call _activate() and move to the 'active' state.
     ready.upon(activate, enter=active, outputs=[_activate])
-    # If we're in the 'active' state and somebody calls 'teardown', call _teardown() and move to the 'torn_down' state.
-    active.upon(teardown, enter=active, outputs=[_teardown])
+    # If we're in the 'ready' state and somebody calls 'teardown', call _teardown() and move to the 'torndown' state.
+    ready.upon(teardown, enter=torndown, outputs=[_teardown])
+    # If we're in the 'active' state and somebody calls 'teardown', call _teardown() and move to the 'torndown' state.
+    active.upon(teardown, enter=torndown, outputs=[_teardown])
 
 
 class PlooginLoader(object):
+    """
+    Extend this class to create a ploogin loader that can look through search paths to find and instantiate ploogins.
+    """
     __metaclass__ = ABCMeta
 
     @abstractmethod
     def load(self, search_path: List[str]) -> List[Ploogin]:
+        """
+        Override this method to implement the loader's primary loading logic.
+
+        :param search_path: the paths the plugin host will search when the ``load()`` method is called
+        :type search_path:  List[str]
+        """
         pass
 
 
 class FsPlooginLoader(PlooginLoader):
-
+    """
+    This is a ploogin loader that looks for ploogins in the local file system.
+    """
     _path_sep_re = re.compile(r":?[\\/\s]", re.IGNORECASE)  # A regular expression that matches file path separators.
 
     def load(self, search_path: List[str]) -> List[Ploogin]:
-        # Clear the current list of plugins.
+        """
+        Load the ploogins found in the search paths on the file system.
+
+        :param search_path: the paths the loader will search when the ``load()`` method is called
+        :type search_path:  List[str]
+        """
+        # Clear the current list of ploogins.
         ploogins = []
         # We're going to build up a list of files that may contain modules.
         candidate_module_files = []
@@ -157,7 +175,7 @@ class FsPlooginLoader(PlooginLoader):
                 for filename in filenames:
                     # ...we're only interested in the python modules.
                     if filename.endswith('.py'):
-                        # We have a candidate!  Add this module file to the list.  (We'll look for actual plugins
+                        # We have a candidate!  Add this module file to the list.  (We'll look for actual ploogins
                         # later.)
                         candidate_module_files.append(os.sep.join([dirpath, filename]))
         # Now let's activate look at those files!
@@ -175,8 +193,8 @@ class FsPlooginLoader(PlooginLoader):
             # Instantiate each plugin class and put the instance in the list.
             for cls in plugin_classes:
                 ploogins.append(cls())
-            # Return what we got.
-            return ploogins
+        # Return what we got.
+        return ploogins
 
     def _path_to_module_name(self, path: str) -> str:
         """
@@ -206,7 +224,7 @@ class PlooginHost(object):
         :seealso: :py:func:`PlooginHost.load`
 
         .. note::
-            If no search path is provided, the default path is ``builtin/plugins`` under the current working directory.
+            If no search path is provided, the default path is ``builtin/ploogins`` under the current working directory.
         """
         # Lets figure out what we got for the search path as a parameter value, and turn it into something we can use
         # as we activate along.  (The code below seemed like the more readable wat
@@ -223,26 +241,26 @@ class PlooginHost(object):
         # What we want in a search path is a list of paths normalized for the operating system.  So, we'll start
         # either with the prescribed list of search paths, and apply the path.normpath() function to each one.
         self._search_path = list(map(lambda p: os.path.normpath(p),  _search_path))
-        # Create a variable for the plugins, but don't populate it with a value yet.  (We'll do that when somebody
+        # Create a variable for the ploogins, but don't populate it with a value yet.  (We'll do that when somebody
         # calls the load() function.)
         self._plugins = None
 
     @_machine.state(initial=True)
-    def not_loaded(self):
-        """The plugins have not been loaded yet."""
+    def initialized(self):
+        """The host has been instantiated, but the ploogins have not been loaded yet."""
 
     @_machine.state()
     def loaded(self):
-        """The plugins have been loaded."""
+        """The ploogins have been loaded."""
 
     @_machine.state()
-    def torn_down(self):
+    def torndown(self):
         """The plugin host has been torn down."""
 
     @_machine.input()
     def load(self):
         """
-        Load the plugins.
+        Load the ploogins.
         """
 
     @_machine.output()
@@ -258,9 +276,7 @@ class PlooginHost(object):
     @_machine.input()
     def teardown(self):
         """
-        Call this method when you're finished with this plugin host, and all the plugins it has provided.
-
-        :seealso: :py:func:`Ploogin.teardown`
+        Call this method when you're finished with this plugin host, and all the ploogins it has provided.
         """
 
     @_machine.output()
@@ -271,18 +287,24 @@ class PlooginHost(object):
         :seealso: :py:func:`PlooginHost.teardown`
         :seealso: :py:func:`Ploogin.teardown`
         """
-        # Tear down all the plugins.
+        # Tear down all the ploogins.
         map(lambda plugin: plugin.teardown(), self._plugins)
         # Clear out the list.
         self._plugins = []
 
     @property
-    def plugins(self) -> Iterator[Ploogin]:
+    def ploogins(self) -> Iterator[Ploogin]:
         """
-        Get the plugins loaded by this host.
+        Get the ploogins loaded by this host.
 
         :rtype: :py:class:`Iterator[Ploogin]`
         """
         return iter(self._plugins) if self._plugins is not None else iter([])
 
+    # When the host has just been initialized, we can transition to the 'loaded' state when 'load()' is called.
+    initialized.upon(load, enter=loaded, outputs=[_load])
+    # We can also transition right to the 'torndown' state from the initial state, but nothing happens.
+    initialized.upon(teardown, enter=torndown, outputs=[])
+    # If we're all loaded up, we can also tear down.
+    loaded.upon(teardown, enter=torndown, outputs=[_teardown])
 
