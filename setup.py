@@ -18,6 +18,7 @@ setup(
   install_requires=[
     'automat'
   ],
+  python_requires=">=3.6.1",
   description='A pretty simple plugin framework.',
   license='MIT',
   author='Pat Daburu',
