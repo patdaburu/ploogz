@@ -8,11 +8,13 @@
 This file is used to create the package uploaded to PyPI.
 """
 
+import ploogz
+
 from distutils.core import setup
 setup(
   name='ploogz',
   packages=['ploogz'],  # This must be the same as the name above.
-  version='0.0.3',
+  version=ploogz.__version__,
   install_requires=[
     'automat'
   ],
@@ -20,8 +22,8 @@ setup(
   license='MIT',
   author='Pat Daburu',
   author_email='pat@daburu.net',
-  url='https://github.com/patdaburu/ploogz',  # Use the URL to the github repo.
-  download_url='https://github.com/pblair/ploogz/archive/0.0.2.tar.gz',  # I'll explain this in a second
+  url='http://ploogz.readthedocs.io/en/latest/index.html',  # Use the URL to the github repo.
+  download_url='https://github.com/pblair/ploogz/archive/{version}.tar.gz'.format(version=ploogz.__version__),
   keywords=['plugin'],  # arbitrary keywords
   classifiers=[],
 )
