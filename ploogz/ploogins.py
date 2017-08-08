@@ -63,21 +63,32 @@ class Ploogin(object):
         """The plugin has been torn down."""
 
     @_machine.input()
-    def setup(self):
-        """Get the plugin ready to run."""
+    def setup(self, options: dict=None):
+        """
+        Get the plugin ready to run.
+
+        :param options: the setup options the ploogin should use to prepare itself
+        :type options:  ``dict``
+        """
 
     @_machine.output()
-    def _setup(self):
+    def _setup(self, options: dict=None):
         """
         This is the output method mapped to the :py:func:`Ploogin.setup` input method.
+
+        :param options: the setup options the ploogin should use to prepare itself
+        :type options:  ``dict``
         """
-        self.upon_setup()
+        self.upon_setup(options=options)
 
     @abstractmethod
-    def upon_setup(self):
+    def upon_setup(self, options: dict=None):
         """
         Override this method to perform setup on the plugin.  After this method is called, your plugin should be ready
         for the ``activate()`` method to be called so it can start doing its thing.
+
+        :param options: the setup options the ploogin should use to prepare itself
+        :type options:  ``dict``
 
         :seealso: :py:func:`Ploogin.activate`
         """

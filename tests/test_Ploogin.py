@@ -20,8 +20,10 @@ class TestPloogin(Ploogin):
         self.upon_setup_called = False
         self.upon_activation_called = False
         self.upon_teardown_called = False
+        self.options = None
 
-    def upon_setup(self):
+    def upon_setup(self, options: dict=None):
+        self.options = options
         self.upon_setup_called = True
 
     def upon_activation(self):
@@ -52,7 +54,12 @@ class TestPlooginSuite(unittest.TestCase):
 
     def test_inheritPloogin_setupAndActivate_verifyOnActivationCalled(self):
         test_ploogin = TestPloogin()
-        test_ploogin.setup()
+        options = {
+            'alpha': 1,
+            'beta': 'two',
+        }
+        test_ploogin.setup(options=options)
+        self.assertTrue(1, test_ploogin.options['alpha'])
         test_ploogin.activate()
         self.assertTrue(test_ploogin.upon_setup_called)
         self.assertTrue(test_ploogin.upon_activation_called)

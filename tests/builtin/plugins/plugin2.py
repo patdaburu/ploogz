@@ -18,8 +18,10 @@ class TestPlooginTwo(Ploogin):
         self.upon_setup_called = False
         self.upon_activation_called = False
         self.upon_teardown_called = False
+        self.options = None
 
-    def upon_setup(self):
+    def upon_setup(self, options: dict=None):
+        self.options = options
         self.upon_setup_called = True
 
     def upon_activation(self):
