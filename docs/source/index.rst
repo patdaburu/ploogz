@@ -36,7 +36,7 @@ always document your code!*)
 
 .. code-block:: python
 
-    from ploogz.ploogins import Ploogin
+    from ploogz.ploogins import Ploogin, upon_setup, upon_activate, upon_teardown
 
 
     class MyUsefulThing(Ploogin):
@@ -44,13 +44,16 @@ always document your code!*)
         def __init__(self):
             super().__init__(name='My Useful Thing')
 
-        def upon_setup(self):
+        @upon_setup
+        def get_ready(self):
             print("Getting ready!")
 
-        def upon_activation(self):
+        @upon_activate
+        def get_busy(self):
             print("Here we go!!")
 
-        def upon_teardown(self):
+        @upon_teardown
+        def wrap_it_up(self):
             print("Good night.")
 
 You can place this class in a python file (with a ``.py`` extension) in a directory along with other files containing

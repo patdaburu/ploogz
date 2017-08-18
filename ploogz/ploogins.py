@@ -13,12 +13,72 @@ import importlib.util
 import re
 import inspect
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, List
+from typing import Callable, Iterator, List
 from automat import MethodicalMachine
+from enum import Enum
+import inspect
 
 _DEFAULT_SEARCH_PATH = [
     os.path.normpath(os.path.join(os.getcwd(), 'builtin/ploogins'))
 ]  # The default paths we'll search for ploogins.
+
+
+class PlooginEvents(Enum):
+    """
+    These are the well known events that occur in the life cycle of a ploogin.
+    """
+    SETUP = 'setup',
+    ACTIVATE = 'activate',
+    TEARDOWN = 'teardown'
+
+
+class PlooginEventHandler(object):
+    """
+    Instances of this are callable and wrap handler functions for well-known event ploogin event types.
+    """
+    def __init__(self,
+                 event: PlooginEvents,
+                 f: Callable):
+        """
+
+        :param event: What type of event does this handler handle?
+        :type event:  :py:class:`PlooginEvents`
+        :param f: the handler function
+        :type f:  Callable
+        """
+        self._event = event
+        self._f = f
+
+    @property
+    def event(self) -> PlooginEvents:
+        """
+        What type of event does this handler handle?
+        """
+        return self._event
+
+    def __call__(self, *args, **kwargs):
+        self._f(*args, **kwargs)
+
+
+def upon_setup(f: Callable):
+    """
+    Use this decorator to mark your ploogin function as a handler to call upon setup.
+    """
+    return PlooginEventHandler(event=PlooginEvents.SETUP, f=f)
+
+
+def upon_activate(f: Callable):
+    """
+    Use this decorator to mark your ploogin function as a handler to call upon activation.
+    """
+    return PlooginEventHandler(event=PlooginEvents.ACTIVATE, f=f)
+
+
+def upon_teardown(f: Callable):
+    """
+    Use this decorator to mark you ploogin function as a handler to call upon teardown.
+    """
+    return PlooginEventHandler(event=PlooginEvents.TEARDOWN, f=f)
 
 
 class Ploogin(object):
@@ -36,6 +96,19 @@ class Ploogin(object):
         """
         super().__init__()
         self._name = name
+        # Get all the event handlers defined for this instance.
+        _event_handlers: List[PlooginEventHandler] = [
+            tup[1] for tup in inspect.getmembers(self) if isinstance(tup[1], PlooginEventHandler)
+        ]
+        self._setup_handlers: List[PlooginEventHandler] = [
+            eh for eh in _event_handlers if eh.event == PlooginEvents.SETUP
+        ]
+        self._activation_handlers: List[PlooginEventHandler] = [
+            eh for eh in _event_handlers if eh.event == PlooginEvents.ACTIVATE
+        ]
+        self._teardown_handlers: List[PlooginEventHandler] = [
+            eh for eh in _event_handlers if eh.event == PlooginEvents.TEARDOWN
+        ]
 
     @property
     def name(self) -> str:
@@ -79,20 +152,8 @@ class Ploogin(object):
         :param options: the setup options the ploogin should use to prepare itself
         :type options:  ``dict``
         """
-        self.upon_setup(options=options)
-
-    @abstractmethod
-    def upon_setup(self, options: dict=None):
-        """
-        Override this method to perform setup on the plugin.  After this method is called, your plugin should be ready
-        for the ``activate()`` method to be called so it can start doing its thing.
-
-        :param options: the setup options the ploogin should use to prepare itself
-        :type options:  ``dict``
-
-        :seealso: :py:func:`Ploogin.activate`
-        """
-        pass
+        for setup_handler in self._setup_handlers:
+            setup_handler(self, options)
 
     @_machine.input()
     def activate(self):
@@ -103,14 +164,8 @@ class Ploogin(object):
         """
         This is the output method mapped to the :py:func:`Ploogin.setup` input method.
         """
-        self.upon_activation()
-
-    @abstractmethod
-    def upon_activation(self):
-        """
-        Override this method to have the plugin do its principal work.
-        """
-        pass
+        for activation_handler in self._activation_handlers:
+            activation_handler(self)
 
     @_machine.input()
     def teardown(self):
@@ -121,15 +176,8 @@ class Ploogin(object):
         """
         This is the output method mapped to the :py:func:`Ploogin.teardown` input method.
         """
-        self.upon_teardown()
-
-    @abstractmethod
-    def upon_teardown(self):
-        """
-        Override this method perform steps required when the application using the plugin decides that its work is
-        done.
-        """
-        pass
+        for teardown_handler in self._teardown_handlers:
+            teardown_handler(self)
 
     # We start in the 'initialized' state until somebody calls load(), at which point we call the _setup() function and
     # move to the 'ready' state.

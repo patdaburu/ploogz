@@ -10,7 +10,7 @@ Unit tests of the :py:class:`ploogz.Ploogin` class.
 
 import unittest
 from automat import NoTransition
-from ploogz.ploogins import Ploogin
+from ploogz.ploogins import Ploogin, upon_setup, upon_activate, upon_teardown
 
 
 class TestPloogin(Ploogin):
@@ -22,14 +22,17 @@ class TestPloogin(Ploogin):
         self.upon_teardown_called = False
         self.options = None
 
-    def upon_setup(self, options: dict=None):
+    @upon_setup
+    def when_we_setup(self, options: dict=None):
         self.options = options
         self.upon_setup_called = True
 
-    def upon_activation(self):
+    @upon_activate
+    def when_we_activate(self):
         self.upon_activation_called = True
 
-    def upon_teardown(self):
+    @upon_teardown
+    def when_we_teardown(self):
         self.upon_teardown_called = True
 
 
