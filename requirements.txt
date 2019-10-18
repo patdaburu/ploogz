@@ -13,7 +13,7 @@ MarkupSafe==1.0
 pkginfo==1.4.1
 Pygments==2.2.0
 pytz==2017.2
-requests==2.18.3
+requests==2.20.0
 requests-toolbelt==0.8.0
 six==1.10.0
 snowballstemmer==1.2.1
